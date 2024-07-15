@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>ESP32 WiFi Config</title>
+</head>
+
+<body>
+	<h2>ESP32 WiFi Configuration</h2>
+	<label for="ssid">SSID:</label>
+	<input type="text" id="ssid" name="ssid"><br><br>
+	<label for="password">Password:</label>
+	<input type="text" id="password" name="password"><br><br>
+	<button onclick="sendData()">Send Data</button>
+
+	<script>
+		let device;
+		let server;
+		let service;
+		let characteristic;
+
+		async function connect() {
+			try {
+				device = await navigator.bluetooth.requestDevice({
+					filters: [{ name: 'ESP32_Bluetooth' }],
+					optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+				});
+				server = await device.gatt.connect();
+				service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+				characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+				console.log('Connected to Bluetooth');
+			} catch (error) {
+				console.log('Error:', error);
+			}
+		}
+
+		async function sendData() {
+			if (!characteristic) {
+				await connect();
+			}
+			const ssid = document.getElementById('ssid').value;
+			const password = document.getElementById('password').value;
+			const data = `${ssid},${password}`;
+			const encoder = new TextEncoder();
+			await characteristic.writeValue(encoder.encode(data));
+			console.log('Data sent:', data);
+		}
+	</script>
+</body>
+
+</html>
