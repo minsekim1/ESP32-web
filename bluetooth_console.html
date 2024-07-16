@@ -2,13 +2,14 @@
 <html>
 
 <head>
-	<title>BLE LED Control</title>
+	<title>BLE Command Control</title>
 </head>
 
 <body>
-	<h1>BLE LED Control</h1>
+	<h1>BLE Command Control</h1>
 	<button onclick="sendCommand('LED ON')">Turn LED ON</button>
 	<button onclick="sendCommand('LED OFF')">Turn LED OFF</button>
+	<button onclick="promptCommand()">Send Custom Command</button>
 
 	<script>
 		async function sendCommand(command) {
@@ -26,6 +27,15 @@
 				alert('Command sent: ' + command);
 			} catch (error) {
 				console.log('Error: ' + error);
+			}
+		}
+
+		function promptCommand() {
+			const command = prompt("Enter the command to send to the ESP32:");
+			if (command !== null) {
+				if (confirm("Send command: " + command + "?")) {
+					sendCommand(command);
+				}
 			}
 		}
 	</script>
