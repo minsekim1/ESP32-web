@@ -12,15 +12,19 @@
 	<button onclick="promptCommand()">Send Custom Command</button>
 
 	<script>
+		const serviceUuid = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+		const characteristicUuid = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+
 		async function sendCommand(command) {
 			try {
 				const device = await navigator.bluetooth.requestDevice({
-					filters: [{ services: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] }]
+					filters: [{ name: 'MyESP32' }],
+					optionalServices: [serviceUuid]
 				});
 
 				const server = await device.gatt.connect();
-				const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
-				const characteristic = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+				const service = await server.getPrimaryService(serviceUuid);
+				const characteristic = await service.getCharacteristic(characteristicUuid);
 
 				const encoder = new TextEncoder();
 				await characteristic.writeValue(encoder.encode(command));
