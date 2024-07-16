@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>BLE LED Control</title>
+</head>
+
+<body>
+	<h1>BLE LED Control</h1>
+	<button onclick="sendCommand('LED ON')">Turn LED ON</button>
+	<button onclick="sendCommand('LED OFF')">Turn LED OFF</button>
+
+	<script>
+		async function sendCommand(command) {
+			try {
+				const device = await navigator.bluetooth.requestDevice({
+					filters: [{ services: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] }]
+				});
+
+				const server = await device.gatt.connect();
+				const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
+				const characteristic = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+
+				const encoder = new TextEncoder();
+				await characteristic.writeValue(encoder.encode(command));
+				alert('Command sent: ' + command);
+			} catch (error) {
+				console.log('Error: ' + error);
+			}
+		}
+	</script>
+</body>
+
+</html>
