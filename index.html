@@ -16,16 +16,15 @@
 	<script>
 		const serviceUuid = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
 		const characteristicUuid = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+		const option = { filters: [{ name: 'MyESP32' }], optionalServices: [serviceUuid] }
 
 		let characteristic;
 		let device;
 
 		async function connectToDevice() {
 			try {
-				device = await navigator.bluetooth.requestDevice({
-					filters: [{ name: 'MyESP32' }],
-					optionalServices: [serviceUuid]
-				});
+
+				device = await navigator.bluetooth.requestDevice(option);
 
 				await connectGattServer(device);
 				console.log('Connected to BLE device');
@@ -36,44 +35,33 @@
 
 		async function connectGattServer(device) {
 			try {
-				localStorage.setItem('bluetoothDeviceId', device.id);
 				const server = await device.gatt.connect();
 				const service = await server.getPrimaryService(serviceUuid);
 				characteristic = await service.getCharacteristic(characteristicUuid);
 
-				device.addEventListener('gattserverdisconnected', handleDisconnection);
+				device.addEventListener('gattserverdisconnected', () => {
+					console.log('Device disconnected, please use the Reconnect button to reconnect.');
+					localStorage.removeItem('bluetoothDeviceId')
+				});
+				localStorage.setItem('bluetoothDeviceId', device.id);
+				console.log('Connected to BLE device');
 			} catch (error) {
 				console.error('Failed to connect GATT server', error);
 			}
 		}
 
-		function handleDisconnection() {
-			console.log('Device disconnected, please use the Reconnect button to reconnect.');
-		}
 
 		async function attemptReconnect() {
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
-			if (deviceId) {
-				try {
-					if (!device) {
-						const options = {
-							filters: [{ name: 'MyESP32' }],
-							optionalServices: [serviceUuid]
-						};
-						navigator.bluetooth.requestDevice(options)
-							.then(async (device) => {
-								await connectGattServer(device);
-								console.log('Reconnected to BLE device');
-							})
-							.catch(error => {
-								console.error('Reconnection failed', error);
-							});
-					}
-				} catch (error) {
-					console.error('Reconnection failed', error);
+			if (!deviceId) return console.log('No stored device ID found for reconnection')
+			try {
+				if (!device) {
+					navigator.bluetooth.requestDevice(options)
+						.then(async (device) => await connectGattServer(device))
+						.catch(error => console.error('Reconnection failed', error));
 				}
-			} else {
-				console.error('No stored device ID found for reconnection');
+			} catch (error) {
+				console.error('Reconnection failed', error);
 			}
 		}
 
@@ -81,9 +69,7 @@
 			if (device && device.gatt.connected) {
 				device.gatt.disconnect();
 				console.log('Device disconnected');
-			} else {
-				console.log('No device is currently connected');
-			}
+			} else console.log('No device is currently connected')
 		}
 
 		document.getElementById('connect').addEventListener('click', connectToDevice);
@@ -91,36 +77,28 @@
 		document.getElementById('disconnect').addEventListener('click', disconnectDevice);
 
 		document.getElementById('led-on').addEventListener('click', async () => {
-			if (characteristic) {
-				try {
-					await characteristic.writeValue(new TextEncoder().encode('LED ON'));
-					console.log('LED ON command sent');
-				} catch (error) {
-					console.error('Failed to send LED ON command', error);
-				}
-			} else {
-				console.error('Characteristic is not available');
+			try {
+				if (!characteristic) return console.error('Characteristic is not available')
+				await characteristic.writeValue(new TextEncoder().encode('LED ON'));
+				console.log('LED ON command sent');
+			} catch (error) {
+				console.error('Failed to send LED ON command', error);
 			}
 		});
 
 		document.getElementById('led-off').addEventListener('click', async () => {
-			if (characteristic) {
-				try {
-					await characteristic.writeValue(new TextEncoder().encode('LED OFF'));
-					console.log('LED OFF command sent');
-				} catch (error) {
-					console.error('Failed to send LED OFF command', error);
-				}
-			} else {
-				console.error('Characteristic is not available');
+			try {
+				if (!characteristic) return console.error('Characteristic is not available');
+				await characteristic.writeValue(new TextEncoder().encode('LED OFF'));
+				console.log('LED OFF command sent');
+			} catch (error) {
+				console.error('Failed to send LED OFF command', error);
 			}
 		});
 
 		window.addEventListener('load', () => {
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
-			if (deviceId) {
-				console.log('Found stored device ID:', deviceId);
-			}
+			if (deviceId) console.log('Found stored device')
 		});
 	</script>
 </body>
