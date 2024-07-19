@@ -21,17 +21,18 @@
 		let characteristic;
 		let device;
 
-		async function connectGattServer(device) {
+		async function connectGattServer(newDevice) {
 			try {
-				const server = await device.gatt.connect();
+				const server = await newDevice.gatt.connect();
 				const service = await server.getPrimaryService(serviceUuid);
 				characteristic = await service.getCharacteristic(characteristicUuid);
 
-				device.addEventListener('gattserverdisconnected', () => {
+				newDevice.addEventListener('gattserverdisconnected', () => {
 					console.log('Device disconnected, please use the Reconnect button to reconnect.');
 					localStorage.removeItem('bluetoothDeviceId')
 				});
-				localStorage.setItem('bluetoothDeviceId', device.id);
+				newDevice = newDevice
+				localStorage.setItem('bluetoothDeviceId', newDevice.id);
 				console.log('Connected to BLE device');
 			} catch (error) {
 				console.error('Failed to connect GATT server', error);
@@ -39,8 +40,8 @@
 		}
 		async function onConnect() {
 			try {
-				device = await navigator.bluetooth.requestDevice(option);
-				await connectGattServer(device);
+				const newDevice = await navigator.bluetooth.requestDevice(option);
+				await connectGattServer(newDevice);
 				console.log('Connected to BLE device');
 			} catch (error) {
 				console.error('Connection failed', error);
@@ -51,9 +52,8 @@
 			if (!deviceId) return console.log('No stored device ID found for reconnection')
 			if (device) return console.log("already connect")
 			try {
-				navigator.bluetooth.requestDevice(option)
-					.then(async (device) => await connectGattServer(device))
-					.catch(error => console.error('Reconnection failed', error));
+				const newDevice = await navigator.bluetooth.requestDevice(option);
+				await connectGattServer(newDevice);
 			} catch (error) {
 				console.error('Reconnection failed', error);
 			}
