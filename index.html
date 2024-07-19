@@ -6,7 +6,7 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control via Web Bluetooth</h1>
+	<h1>ESP32 LED Control sdf Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="reconnect">Reconnect</button>
 	<button id="disconnect">Disconnect</button>
@@ -68,9 +68,6 @@
 							.catch(error => {
 								console.error('Reconnection failed', error);
 							});
-					} else {
-						await connectGattServer(device);
-						console.log('Reconnected to BLE device');
 					}
 				} catch (error) {
 					console.error('Reconnection failed', error);
@@ -89,42 +86,34 @@
 			}
 		}
 
-		async function sendCommand(command) {
-			if (characteristic) {
-				if (device.gatt.connected) {
-					try {
-						await characteristic.writeValue(new TextEncoder().encode(command));
-						console.log(`${command} command sent`);
-					} catch (error) {
-						console.error(`Failed to send ${command} command`, error);
-					}
-				} else {
-					console.log('Device is disconnected, attempting to reconnect');
-					await attemptReconnect();
-					if (device.gatt.connected) {
-						try {
-							await characteristic.writeValue(new TextEncoder().encode(command));
-							console.log(`${command} command sent`);
-						} catch (error) {
-							console.error(`Failed to send ${command} command`, error);
-						}
-					}
-				}
-			} else {
-				console.error('Characteristic is not available');
-			}
-		}
-
 		document.getElementById('connect').addEventListener('click', connectToDevice);
 		document.getElementById('reconnect').addEventListener('click', attemptReconnect);
 		document.getElementById('disconnect').addEventListener('click', disconnectDevice);
 
 		document.getElementById('led-on').addEventListener('click', async () => {
-			await sendCommand('LED ON');
+			if (characteristic) {
+				try {
+					await characteristic.writeValue(new TextEncoder().encode('LED ON'));
+					console.log('LED ON command sent');
+				} catch (error) {
+					console.error('Failed to send LED ON command', error);
+				}
+			} else {
+				console.error('Characteristic is not available');
+			}
 		});
 
 		document.getElementById('led-off').addEventListener('click', async () => {
-			await sendCommand('LED OFF');
+			if (characteristic) {
+				try {
+					await characteristic.writeValue(new TextEncoder().encode('LED OFF'));
+					console.log('LED OFF command sent');
+				} catch (error) {
+					console.error('Failed to send LED OFF command', error);
+				}
+			} else {
+				console.error('Characteristic is not available');
+			}
 		});
 
 		window.addEventListener('load', () => {
