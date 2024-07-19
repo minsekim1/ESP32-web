@@ -6,7 +6,7 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control gewa Web Bluetooth</h1>
+	<h1>ESP32 LED Control ewg Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="reconnect">Reconnect</button>
 	<button id="disconnect">Disconnect</button>
@@ -16,7 +16,7 @@
 	<script>
 		const serviceUuid = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
 		const characteristicUuid = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
-		const option = { filters: [{ name: 'MyESP32' }], optionalServices: [serviceUuid] }
+		const options = { acceptAllDevices: true, optionalServices: [serviceUuid] };
 
 		let characteristic;
 		let device;
