@@ -55,11 +55,14 @@
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
 			if (deviceId) {
 				try {
+					// Request device based on stored deviceId
 					device = await navigator.bluetooth.requestDevice({
 						filters: [{ services: [serviceUuid] }],
 						acceptAllDevices: true,
+						deviceId: deviceId  // Use stored deviceId to filter
 					});
 
+					// Connect to the device
 					const server = await device.gatt.connect();
 					const service = await server.getPrimaryService(serviceUuid);
 					characteristic = await service.getCharacteristic(characteristicUuid);
@@ -70,6 +73,7 @@
 				}
 			}
 		});
+
 	</script>
 </body>
 
