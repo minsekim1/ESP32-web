@@ -6,9 +6,10 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control zzz Web Bluetooth</h1>
+	<h1>ESP32 LED Control zxc Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="reconnect">Reconnect</button>
+	<button id="disconnect">Disconnect</button>
 	<button id="led-on">LED ON</button>
 	<button id="led-off">LED OFF</button>
 
@@ -72,8 +73,18 @@
 			}
 		}
 
+		async function disconnectDevice() {
+			if (device && device.gatt.connected) {
+				device.gatt.disconnect();
+				console.log('Device disconnected');
+			} else {
+				console.log('No device is currently connected');
+			}
+		}
+
 		document.getElementById('connect').addEventListener('click', connectToDevice);
 		document.getElementById('reconnect').addEventListener('click', attemptReconnect);
+		document.getElementById('disconnect').addEventListener('click', disconnectDevice);
 
 		document.getElementById('led-on').addEventListener('click', async () => {
 			if (characteristic) {
