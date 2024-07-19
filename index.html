@@ -49,12 +49,11 @@
 		async function onReconnect() {
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
 			if (!deviceId) return console.log('No stored device ID found for reconnection')
+			if (device) return console.log("already connect")
 			try {
-				if (!device) {
-					navigator.bluetooth.requestDevice(options)
-						.then(async (device) => await connectGattServer(device))
-						.catch(error => console.error('Reconnection failed', error));
-				}
+				navigator.bluetooth.requestDevice(option)
+					.then(async (device) => await connectGattServer(device))
+					.catch(error => console.error('Reconnection failed', error));
 			} catch (error) {
 				console.error('Reconnection failed', error);
 			}
