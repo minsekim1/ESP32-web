@@ -6,7 +6,7 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control via Web Bluetooth</h1>
+	<h1>ESP32 LED Control xs Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="led-on">LED ON</button>
 	<button id="led-off">LED OFF</button>
@@ -25,15 +25,45 @@
 					optionalServices: [serviceUuid]
 				});
 
-				localStorage.setItem('bluetoothDeviceId', device.id);
+				await connectGattServer(device);
+				console.log('Connected to BLE device');
+			} catch (error) {
+				console.error('Connection failed', error);
+			}
+		}
 
+		async function connectGattServer(device) {
+			try {
+				localStorage.setItem('bluetoothDeviceId', device.id);
 				const server = await device.gatt.connect();
 				const service = await server.getPrimaryService(serviceUuid);
 				characteristic = await service.getCharacteristic(characteristicUuid);
 
-				console.log('Connected to BLE device');
+				device.addEventListener('gattserverdisconnected', handleDisconnection);
 			} catch (error) {
-				console.error('Connection failed', error);
+				console.error('Failed to connect GATT server', error);
+			}
+		}
+
+		function handleDisconnection() {
+			console.log('Device disconnected, attempting to reconnect...');
+			attemptReconnect();
+		}
+
+		async function attemptReconnect() {
+			const deviceId = localStorage.getItem('bluetoothDeviceId');
+			if (deviceId) {
+				try {
+					device = await navigator.bluetooth.getDevices().then(devices => devices.find(d => d.id === deviceId));
+					if (device) {
+						await connectGattServer(device);
+						console.log('Reconnected to BLE device');
+					} else {
+						console.error('No matching device found for reconnection');
+					}
+				} catch (error) {
+					console.error('Reconnection failed', error);
+				}
 			}
 		}
 
@@ -66,12 +96,7 @@
 		});
 
 		// Reconnect to device if previously connected
-		window.addEventListener('load', async () => {
-			const deviceId = localStorage.getItem('bluetoothDeviceId');
-			if (deviceId) {
-				console.log('Found stored device ID:', deviceId);
-			}
-		});
+		window.addEventListener('load', attemptReconnect);
 	</script>
 </body>
 
