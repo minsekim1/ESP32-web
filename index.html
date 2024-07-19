@@ -68,7 +68,7 @@
 		}
 		async function onCommand(command) {
 			try {
-				if (!characteristic) return console.error('Characteristic is not available')
+				if (!characteristic) return console.error('device is not available')
 				await characteristic.writeValue(new TextEncoder().encode(command));
 				console.log(`${command} command sent`);
 			} catch (error) {
