@@ -6,9 +6,8 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control zxc Web Bluetooth</h1>
+	<h1>ESP32 LED Control cvb Web Bluetooth</h1>
 	<button id="connect">Connect</button>
-	<button id="reconnect">Reconnect</button>
 	<button id="disconnect">Disconnect</button>
 	<button id="led-on">LED ON</button>
 	<button id="led-off">LED OFF</button>
@@ -55,21 +54,19 @@
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
 			if (deviceId) {
 				try {
-					const devices = await navigator.bluetooth.getDevices();
-					device = devices.find(d => d.id === deviceId);
-					if (device) {
-						if (device.gatt.connected) {
-							console.log('Using existing BLE connection');
-						} else {
-							await connectGattServer(device);
-							console.log('Reconnected to BLE device');
-						}
-					} else {
-						console.error('No matching device found for reconnection');
+					if (!device) {
+						device = await navigator.bluetooth.requestDevice({
+							filters: [{ name: 'MyESP32' }],
+							optionalServices: [serviceUuid]
+						});
 					}
+					await connectGattServer(device);
+					console.log('Reconnected to BLE device');
 				} catch (error) {
 					console.error('Reconnection failed', error);
 				}
+			} else {
+				console.error('No stored device ID found for reconnection');
 			}
 		}
 
@@ -83,7 +80,6 @@
 		}
 
 		document.getElementById('connect').addEventListener('click', connectToDevice);
-		document.getElementById('reconnect').addEventListener('click', attemptReconnect);
 		document.getElementById('disconnect').addEventListener('click', disconnectDevice);
 
 		document.getElementById('led-on').addEventListener('click', async () => {
@@ -116,6 +112,8 @@
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
 			if (deviceId) {
 				console.log('Found stored device ID:', deviceId);
+				document.getElementById('connect').style.display = 'none';
+				attemptReconnect();
 			}
 		});
 	</script>
