@@ -16,13 +16,16 @@
 		const characteristicUuid = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
 		let characteristic;
+		let device;
 
 		document.getElementById('connect').addEventListener('click', async () => {
 			try {
-				const device = await navigator.bluetooth.requestDevice({
+				device = await navigator.bluetooth.requestDevice({
 					filters: [{ name: 'MyESP32' }],
 					optionalServices: [serviceUuid]
 				});
+
+				localStorage.setItem('bluetoothDeviceId', device.id);
 
 				const server = await device.gatt.connect();
 				const service = await server.getPrimaryService(serviceUuid);
@@ -45,6 +48,26 @@
 			if (characteristic) {
 				await characteristic.writeValue(new TextEncoder().encode('LED OFF'));
 				console.log('LED OFF command sent');
+			}
+		});
+
+		window.addEventListener('load', async () => {
+			const deviceId = localStorage.getItem('bluetoothDeviceId');
+			if (deviceId) {
+				try {
+					device = await navigator.bluetooth.requestDevice({
+						filters: [{ services: [serviceUuid] }],
+						acceptAllDevices: true,
+					});
+
+					const server = await device.gatt.connect();
+					const service = await server.getPrimaryService(serviceUuid);
+					characteristic = await service.getCharacteristic(characteristicUuid);
+
+					console.log('Reconnected to BLE device');
+				} catch (error) {
+					console.error('Reconnection failed', error);
+				}
 			}
 		});
 	</script>
