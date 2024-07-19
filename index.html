@@ -6,7 +6,7 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control gfd Web Bluetooth</h1>
+	<h1>ESP32 LED Control gewa Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="reconnect">Reconnect</button>
 	<button id="disconnect">Disconnect</button>
@@ -30,6 +30,8 @@
 				newDevice.addEventListener('gattserverdisconnected', () => {
 					console.log('Device disconnected, please use the Reconnect button to reconnect.');
 					localStorage.removeItem('bluetoothDeviceId')
+					characteristic = null;
+					device = null;
 				});
 				newDevice = newDevice
 				localStorage.setItem('bluetoothDeviceId', newDevice.id);
@@ -68,9 +70,9 @@
 			try {
 				if (!characteristic) return console.error('Characteristic is not available')
 				await characteristic.writeValue(new TextEncoder().encode(command));
-				console.log('LED ON command sent');
+				console.log(`${command} command sent`);
 			} catch (error) {
-				console.error('Failed to send LED ON command', error);
+				console.error(`Failed to send ${command} command`, error);
 			}
 		}
 		async function onLoad() {
