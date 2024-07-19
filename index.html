@@ -6,7 +6,7 @@
 </head>
 
 <body>
-	<h1>ESP32 LED Control xs Web Bluetooth</h1>
+	<h1>ESP32 LED Control aaa Web Bluetooth</h1>
 	<button id="connect">Connect</button>
 	<button id="led-on">LED ON</button>
 	<button id="led-off">LED OFF</button>
@@ -54,7 +54,11 @@
 			const deviceId = localStorage.getItem('bluetoothDeviceId');
 			if (deviceId) {
 				try {
-					device = await navigator.bluetooth.getDevices().then(devices => devices.find(d => d.id === deviceId));
+					// Reconnect to the device using the stored device ID
+					device = await navigator.bluetooth.requestDevice({
+						filters: [{ name: 'MyESP32' }],
+						optionalServices: [serviceUuid]
+					});
 					if (device) {
 						await connectGattServer(device);
 						console.log('Reconnected to BLE device');
